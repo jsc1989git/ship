@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <form id="shipping-form">
+    <label>Destination Country:</label>
+    <select id="destination-country"></select>
+    <br>
+    <label>To Zip Code:</label>
+    <input type="text" id="to-zip">
+    <br>
+    <label>Weight (in grams):</label>
+    <input type="text" id="weight">
+    <br>
+    <label>Length (in cm):</label>
+    <input type="text" id="length">
+    <br>
+    <label>Width (in cm):</label>
+    <input type="text" id="width">
+    <br>
+    <label>Height (in cm):</label>
+    <input type="text" id="height">
+    <br>
+    <label>Currency:</label>
+    <select id="currency"></select>
+    <br>
+    <button type="submit">Get Shipping Rates</button>
+  </form>
+  
+  <div id="shipping-rates"></div>
+
+  <script>
+    const form = document.querySelector('#shipping-form');
+    const destinationCountry = document.querySelector('#destination-country');
+    const toZip = document.querySelector('#to-zip');
+    const weight = document.querySelector('#weight');
+    const length = document.querySelector('#length');
+    const width = document.querySelector('#width');
+    const height = document.querySelector('#height');
+    const currency = document.querySelector('#currency');
+    const shippingRatesDiv = document.querySelector('#shipping-rates');
+
+    async function getCountries() {
+    const response = await fetch('https://restcountries.com/v2/all');
+    const countries = await response.json();
+
+    let options = '';
+    for (const country of countries) {
+      options += `<option value="${country.alpha2Code}">${country.name}</option>`;
+    }
+
+    destinationCountry.innerHTML = options;
+  }
+
+  async function getCurrencies() {
+    const response = await fetch('https://api.exchangeratesapi.io/latest');
+    const exchangeRates = await response.json();
+
+    let options = `<option value="PHP">PHP</option><option value="USD">USD</option>`;
+
+
+    currency.innerHTML = options;
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const response = await fetch(`https://api.shipgate.io/v1/rates?api_key=c4241bd93be591cb5b84d5b4af863958832&from=KR&to=${toZip.value}&weight=${weight.value}&length=${length.value}&width=${width.value}&height=${height.value}&currency=${currency.value}`);
+    const shippingRates = await response.json();
+
+    let shippingRatesHtml = '';
+    for (const rate of shippingRates) {
+      shippingRatesHtml += `<div>
+        Carrier: ${rate.carrier}<br>
+        Service: ${rate.service}<br>
+        Total Cost: ${rate.total_cost} ${currency.value}<br>
+        Delivery Time: ${rate.delivery_time} days<br>
+        <br>
+      </div>`;
+    }
+
+    shippingRatesDiv.innerHTML = shippingRatesHtml;
+  });
+
+  getCountries();
+  getCurrencies();
+  </script>
+</html>
